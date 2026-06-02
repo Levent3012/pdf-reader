@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>PDF Auto-Scroll Reader</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;600&display=swap');
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0f0f0f; --surface: #1a1a1a; --border: #2e2e2e;
+    --accent: #e8c97e; --text: #e8e8e0; --muted: #888;
+  }
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg); color: var(--text);
+    height: 100vh; display: flex; flex-direction: column; overflow: hidden;
+    -webkit-text-size-adjust: 100%;
+  }
+  #topbar {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 14px; background: var(--surface);
+    border-bottom: 1px solid var(--border); flex-shrink: 0; flex-wrap: wrap;
+  }
+  .logo { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--accent); font-weight: 500; }
+  .sep { width: 1px; height: 20px; background: var(--border); flex-shrink: 0; }
+  #fileBtn {
+    display: flex; align-items: center; gap: 6px; padding: 7px 14px;
+    background: var(--accent); color: #1a1200; border: none; border-radius: 6px;
+    font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600;
+    cursor: pointer; -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+  #fileInput { display: none; }
+  #playBtn {
+    display: flex; align-items: center; justify-content: center;
+    width: 36px; height: 36px; border: 1.5px solid var(--accent);
+    background: transparent; border-radius: 50%; cursor: pointer;
+    color: var(--accent); flex-shrink: 0;
+    -webkit-tap-highlight-color: transparent; touch-action: manipulation;
+  }
+  #playBtn.playing { background: rgba(232,201,126,0.15); }
+  .ctrl-group { display: flex; align-items: center; gap: 8px; }
+  .ctrl-label { font-size: 11px; color: var(--muted); font-family: 'DM Mono', monospace; }
+  #speedSlider {
+    -webkit-appearance: none; width: 90px; height: 4px;
+    background: var(--border); border-radius: 2px; outline: none; cursor: pointer;
+  }
+  #speedSlider::-webkit-slider-thumb {
+    -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%;
+    background: var(--accent); cursor: pointer;
+  }
+  #speedVal { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--accent); min-width: 26px; }
+  #pageInfo { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--muted); margin-left: auto; }
+  #viewport {
+    flex: 1; overflow-y: scroll; overflow-x: hidden;
+    background: #111; display: flex; flex-direction: column;
+    align-items: center; padding: 20px 0; gap: 14px;
+    -webkit-overflow-scrolling: touch;
+  }
+  #viewport::-webkit-scrollbar { width: 4px; }
+  #viewport::-webkit-scrollbar-thumb { background: #333; border-radius: 2px; }
+  .page-wrapper {
+    position: relative; box-shadow: 0 4px 30px rgba(0,0,0,0.6);
+    flex-shrink: 0; background: #e8e8e0; overflow: hidden;
+  }
+  .page-wrapper canvas { display: block; width: 100% !important; }
+  .page-placeholder {
+    display: flex; align-items: center; justify-content: center;
+    background: #e8e8e0; color: #aaa;
+    font-family: 'DM Mono', monospace; font-size: 11px;
+  }
+  .page-num-badge {
+    position: absolute; bottom: 6px; right: 8px;
+    font-family: 'DM Mono', monospace; font-size: 10px;
+    color: rgba(0,0,0,0.2); pointer-events: none;
+  }
+  #dropzone {
+    position: absolute; inset: 0; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 12px;
+    pointer-events: none; user-select: none;
+  }
+  #dropzone .icon { font-size: 48px; opacity: 0.2; }
+  #dropzone .title { font-size: 16px; font-weight: 500; color: #555; }
+  #dropzone .sub { font-size: 12px; color: #444; font-family: 'DM Mono', monospace; }
+  #loadingOverlay {
+    position: fixed; inset: 0; background: rgba(15,15,15,0.9);
+    display: none; align-items: center; justify-content: center;
+    z-index: 100; flex-direction: column; gap: 14px;
+  }
+  .spinner {
+    width: 32px; height: 32px; border: 2.5px solid var(--border);
+    border-top-color: var(--accent); border-radius: 50%;
+    animation: spin 0.75s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  #loadingText { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--muted); text-align: center; padding: 0 20px; }
+  #progressBar { position: fixed; bottom: 0; left: 0; height: 3px; background: var(--accent); z-index: 50; }
+  #errorMsg {
+    display: none; position: fixed; top: 60px; left: 50%; transform: translateX(-50%);
+    background: #c0392b; color: white; padding: 10px 18px; border-radius: 8px;
+    font-size: 13px; z-index: 200; text-align: center; max-width: 300px;
+  }
+</style>
+</head>
+<body>
+<div id="topbar">
+  <span class="logo">▤ PDF SCROLL</span>
+  <div class="sep"></div>
+  <button id="fileBtn" onclick="document.getElementById('fileInput').click()">📄 PDF öffnen</button>
+  <input type="file" id="fileInput" accept="application/pdf">
+  <div class="sep"></div>
+  <button id="playBtn">
+    <svg id="playIcon" width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+  </button>
+  <div class="sep"></div>
+  <div class="ctrl-group">
+    <span class="ctrl-label">TEMPO</span>
+    <input type="range" id="speedSlider" min="5" max="150" value="35" step="5">
+    <span id="speedVal">35</span>
+  </div>
+  <span id="pageInfo">— / —</span>
+</div>
+<div id="viewport">
+  <div id="dropzone">
+    <div class="icon">📄</div>
+    <div class="title">PDF hier ablegen</div>
+    <div class="sub">oder oben auf „PDF öffnen" tippen</div>
+  </div>
+</div>
+<div id="loadingOverlay">
+  <div class="spinner"></div>
+  <div id="loadingText">Lade PDF…</div>
+</div>
+<div id="progressBar" style="width:0%"></div>
+<div id="errorMsg"></div>
+<script>
+  pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  const RENDER_AHEAD=800,RENDER_BACK=400,UNLOAD_DIST=3000,MAX_CONCURRENT=2;
+  let pdfDoc=null,isScrolling=false,scrollRAF=null,scrollAccum=0,pageW=0,pageH=0,pageScale=1;
+  const rendered=new Set(),rendering=new Set();
+  const viewport=document.getElementById('viewport'),playBtn=document.getElementById('playBtn'),playIcon=document.getElementById('playIcon'),speedSlider=document.getElementById('speedSlider'),speedVal=document.getElementById('speedVal'),pageInfo=document.getElementById('pageInfo'),loadingOverlay=document.getElementById('loadingOverlay'),loadingText=document.getElementById('loadingText'),progressBar=document.getElementById('progressBar'),dropzone=document.getElementById('dropzone'),errorMsg=document.getElementById('errorMsg');
+  function showError(msg){errorMsg.textContent=msg;errorMsg.style.display='block';setTimeout(()=>errorMsg.style.display='none',4000);}
+  function setPlaying(v){isScrolling=v;playIcon.innerHTML=v?'<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>':'<polygon points="5 3 19 12 5 21 5 3"/>';playBtn.classList.toggle('playing',v);if(v)startScroll();else stopScroll();}
+  playBtn.addEventListener('click',()=>{if(pdfDoc)setPlaying(!isScrolling);});
+  speedSlider.addEventListener('input',()=>{speedVal.textContent=speedSlider.value;});
+  function startScroll(){function step(){if(!isScrolling)return;scrollAccum+=parseFloat(speedSlider.value)/60;if(scrollAccum>=1){const px=Math.floor(scrollAccum);viewport.scrollTop+=px;scrollAccum-=px;}updateUI();checkPages();if(viewport.scrollTop+viewport.clientHeight>=viewport.scrollHeight-2){setPlaying(false);return;}scrollRAF=requestAnimationFrame(step);}scrollAccum=0;scrollRAF=requestAnimationFrame(step);}
+  function stopScroll(){if(scrollRAF){cancelAnimationFrame(scrollRAF);scrollRAF=null;}}
+  function updateUI(){if(!pdfDoc)return;const idx=Math.floor(viewport.scrollTop/(pageH+14));const cur=Math.min(Math.max(idx+1,1),pdfDoc.numPages);pageInfo.textContent=`${cur} / ${pdfDoc.numPages}`;const max=viewport.scrollHeight-viewport.clientHeight;progressBar.style.width=(max>0?(viewport.scrollTop/max)*100:0)+'%';}
+  function checkPages(){if(!pdfDoc)return;const scrollTop=viewport.scrollTop,clientH=viewport.clientHeight,wrappers=viewport.querySelectorAll('.page-wrapper');wrappers.forEach((wrapper,i)=>{const pageNum=i+1,wTop=wrapper.offsetTop-viewport.offsetTop,wBottom=wTop+pageH,distTop=wTop-(scrollTop+clientH),distBottom=scrollTop-wBottom,dist=Math.max(distTop,distBottom,0);if(dist>UNLOAD_DIST&&rendered.has(pageNum)){const c=wrapper.querySelector('canvas');if(c){c.remove();rendered.delete(pageNum);}const ph=wrapper.querySelector('.page-placeholder');if(ph)ph.style.display='flex';return;}const inRange=wBottom>=scrollTop-RENDER_BACK&&wTop<=scrollTop+clientH+RENDER_AHEAD;if(inRange&&!rendered.has(pageNum)&&!rendering.has(pageNum)&&rendering.size<MAX_CONCURRENT)renderPage(pageNum,wrapper);});}
+  async function renderPage(pageNum,wrapper){rendering.add(pageNum);try{const page=await pdfDoc.getPage(pageNum),pdfVp=page.getViewport({scale:pageScale}),canvas=document.createElement('canvas'),dpr=Math.min(window.devicePixelRatio||1,1.5);canvas.width=Math.floor(pdfVp.width*dpr);canvas.height=Math.floor(pdfVp.height*dpr);canvas.style.width=pdfVp.width+'px';canvas.style.height=pdfVp.height+'px';const ctx=canvas.getContext('2d');ctx.scale(dpr,dpr);const ph=wrapper.querySelector('.page-placeholder');if(ph)ph.style.display='none';wrapper.insertBefore(canvas,wrapper.firstChild);await page.render({canvasContext:ctx,viewport:pdfVp}).promise;page.cleanup();rendered.add(pageNum);}catch(e){}rendering.delete(pageNum);}
+  async function loadPDF(file){if(!file)return;if(file.type!=='application/pdf'){showError('Bitte eine PDF-Datei öffnen.');return;}setPlaying(false);viewport.querySelectorAll('.page-wrapper').forEach(el=>el.remove());rendered.clear();rendering.clear();dropzone.style.display='none';loadingOverlay.style.display='flex';loadingText.textContent='Lade PDF…';try{const arrayBuffer=await file.arrayBuffer();loadingText.textContent='Verarbeite…';pdfDoc=await pdfjsLib.getDocument({data:arrayBuffer}).promise;loadingText.textContent=`${pdfDoc.numPages} Seiten – bereite vor…`;const firstPage=await pdfDoc.getPage(1),unscaled=firstPage.getViewport({scale:1}),availW=viewport.clientWidth-32;pageScale=Math.min(availW/unscaled.width,2);const scaledVp=firstPage.getViewport({scale:pageScale});pageW=Math.floor(scaledVp.width);pageH=Math.floor(scaledVp.height);firstPage.cleanup();const frag=document.createDocumentFragment();for(let i=1;i<=pdfDoc.numPages;i++){const wrapper=document.createElement('div');wrapper.className='page-wrapper';wrapper.style.cssText=`width:${pageW}px;height:${pageH}px`;const ph=document.createElement('div');ph.className='page-placeholder';ph.style.cssText=`width:${pageW}px;height:${pageH}px`;const badge=document.createElement('div');badge.className='page-num-badge';badge.textContent=i;wrapper.appendChild(ph);wrapper.appendChild(badge);frag.appendChild(wrapper);}viewport.appendChild(frag);loadingOverlay.style.display='none';viewport.scrollTop=0;updateUI();checkPages();}catch(e){loadingOverlay.style.display='none';showError('Fehler beim Laden: '+(e.message||'Unbekannter Fehler'));}}
+  document.getElementById('fileInput').addEventListener('change',e=>{if(e.target.files[0])loadPDF(e.target.files[0]);e.target.value='';});
+  viewport.addEventListener('dragover',e=>e.preventDefault());
+  viewport.addEventListener('drop',e=>{e.preventDefault();if(e.dataTransfer.files[0])loadPDF(e.dataTransfer.files[0]);});
+  let scrollTimer;
+  viewport.addEventListener('scroll',()=>{updateUI();clearTimeout(scrollTimer);scrollTimer=setTimeout(checkPages,100);if(!isScrolling)checkPages();});
+  document.addEventListener('keydown',e=>{if(e.code==='Space'&&document.activeElement.tagName!=='INPUT'){e.preventDefault();if(pdfDoc)setPlaying(!isScrolling);}if(e.code==='ArrowUp'){speedSlider.value=Math.min(150,+speedSlider.value+5);speedVal.textContent=speedSlider.value;}if(e.code==='ArrowDown'){speedSlider.value=Math.max(5,+speedSlider.value-5);speedVal.textContent=speedSlider.value;}});
+</script>
+</body>
+</html>
