@@ -82,7 +82,20 @@ button:focus-visible,select:focus-visible{outline:2px solid var(--brass);outline
 .card .qn{font-family:var(--disp);font-size:20px;font-weight:700;margin:2px 0 6px}
 .card .stem{font-size:15.5px;line-height:1.5;white-space:pre-line}
 .card .multi{display:inline-block;margin-top:8px;font-size:12px;font-weight:700;color:var(--brass);border:1px solid var(--brass);border-radius:999px;padding:1px 9px}
-.card img{display:block;max-width:100%;max-height:360px;margin:10px 0 2px;border-radius:6px;border:1px solid var(--edge);background:#fff}
+.thumbs{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 2px}
+.thumb{display:flex;gap:10px;align-items:center;font:inherit;text-align:left;background:var(--soft);color:var(--ink);border:1px solid var(--edge);border-radius:8px;padding:6px 10px 6px 6px;cursor:zoom-in;max-width:100%}
+.thumb img{display:block;height:84px;width:auto;max-width:150px;object-fit:cover;border-radius:5px;background:#fff;border:1px solid var(--edge)}
+.thumb span{font-size:12.5px;color:var(--dim);line-height:1.3}
+.thumb span b{display:block;color:var(--ink);font-size:13.5px}
+#lb{position:fixed;inset:0;z-index:50;background:#0b0d0d;display:flex;flex-direction:column}
+#lb[hidden]{display:none!important}
+#lb .lbbar{display:flex;justify-content:space-between;align-items:center;gap:10px;color:#eee;font-size:14px;
+  padding:calc(10px + env(safe-area-inset-top,0px)) max(14px,env(safe-area-inset-right,0px)) 10px max(14px,env(safe-area-inset-left,0px))}
+#lb .lbbar button{font:inherit;font-weight:700;background:#fff;color:#111;border:0;border-radius:20px;padding:8px 16px;cursor:pointer}
+#lb .lbwrap{flex:1;overflow:auto;display:flex;align-items:center;justify-content:center;padding:8px;touch-action:pinch-zoom pan-x pan-y}
+#lb img{max-width:100%;max-height:100%;object-fit:contain;cursor:zoom-in;background:#fff;border-radius:4px}
+#lb.big .lbwrap{align-items:flex-start;justify-content:flex-start}
+#lb.big img{max-width:none;max-height:none;width:220%;cursor:zoom-out}
 
 .opts{display:flex;flex-direction:column;gap:7px;margin-bottom:12px}
 .opt{display:flex;gap:10px;align-items:flex-start;font:inherit;font-size:15px;text-align:left;background:var(--panel);color:var(--ink);
@@ -125,6 +138,28 @@ body.hl mark.neg{color:#fff;background:var(--red);font-weight:800;border-radius:
 body.hl mark.num{font-family:var(--mono);font-weight:600;background:color-mix(in srgb,var(--slate) 14%,transparent);border-radius:3px;padding:0 2px}
 body.hl mark.trap{text-decoration:underline dotted var(--red);text-decoration-thickness:2px;text-underline-offset:3px}
 body.hl mark.kwa{background:color-mix(in srgb,var(--green) 30%,transparent);border-radius:3px;padding:0 2px;font-weight:700}
+.prime{background:var(--panel);border:1px solid var(--edge);border-left:4px solid var(--green);border-radius:10px;padding:16px 16px 14px;margin-bottom:12px;cursor:pointer}
+.prime.negq{border-left-color:var(--red)}
+.prime .tag{font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--brass);font-weight:700}
+.prime .qn{font-family:var(--disp);font-size:20px;font-weight:700;margin:2px 0 10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.prime .qn sup{font-family:var(--body);font-size:11px;color:var(--brass);font-weight:700}
+.chips{display:flex;flex-wrap:wrap;gap:6px 7px;align-items:center}
+.chip{font-size:17px;font-weight:700;color:var(--green);background:color-mix(in srgb,var(--green) 10%,transparent);border-radius:6px;padding:2px 8px;line-height:1.35}
+.chip.num{font-family:var(--mono);font-size:15px;color:var(--ink);background:color-mix(in srgb,var(--slate) 15%,transparent)}
+.chip.neg{color:#fff;background:var(--red);letter-spacing:.05em}
+.chip.plain{font-weight:500;color:var(--ink);background:none;padding:0;font-size:15.5px}
+.parrow{font-size:22px;color:var(--dim);margin:10px 0 6px}
+.pans{min-height:44px;display:flex;flex-direction:column;gap:7px}
+.pans .hid{font-size:14px;color:var(--dim);border:1.5px dashed var(--edge);border-radius:8px;padding:10px 12px}
+.pline{display:flex;gap:8px;align-items:flex-start}
+.pline .l{font-family:var(--mono);font-weight:700;flex:none;width:24px;height:24px;border-radius:50%;background:var(--green);color:#fff;display:grid;place-items:center;font-size:12.5px;margin-top:2px}
+.pline .chips .chip{color:var(--ink);background:color-mix(in srgb,var(--green) 26%,transparent)}
+.pfull{font-size:13.5px;color:var(--dim);margin-top:10px;border-top:1px dashed var(--edge);padding-top:8px}
+::highlight(tts-sent){background-color:rgba(255,215,0,.30)}
+::highlight(tts-word){background-color:rgba(255,215,0,.95);color:#1b1f1d}
+.ttsCur{background:rgba(255,215,0,.30)!important;border-radius:4px}
+#ttsTog{font-size:12.5px;font-weight:600;background:transparent;color:var(--ink);border:1px solid var(--edge);border-radius:6px;padding:4px 10px;cursor:pointer}
+body.tts #ttsTog{border-color:var(--green);color:#fff;background:var(--green)}
 #hlTog{font-size:12.5px;font-weight:600;background:transparent;color:var(--ink);border:1px solid var(--edge);border-radius:6px;padding:4px 10px;cursor:pointer}
 body.hl #hlTog{border-color:var(--brass);background:color-mix(in srgb,var(--brass) 14%,transparent)}
 
@@ -174,12 +209,19 @@ body.run.cfg #dGo{display:none}
     <button id="dPause" type="button" disabled>Pause</button>
     <label for="dSpeed" style="font-size:14px">Takt
       <select id="dSpeed">
-        <option value="manual">Von Hand (Weiter-Knopf)</option><option value="500">0,5 Sekunden</option><option value="1000">1 Sekunde</option><option value="2000">2 Sekunden</option><option value="3000" selected>3 Sekunden</option><option value="4000">4 Sekunden</option><option value="5000">5 Sekunden</option><option value="6000">6 Sekunden</option><option value="7000">7 Sekunden</option>
+        <option value="tts">Nach dem Vorlesen weiter</option><option value="manual">Von Hand (Weiter-Knopf)</option><option value="500">0,5 Sekunden</option><option value="1000">1 Sekunde</option><option value="2000">2 Sekunden</option><option value="3000" selected>3 Sekunden</option><option value="4000">4 Sekunden</option><option value="5000">5 Sekunden</option><option value="6000">6 Sekunden</option><option value="7000">7 Sekunden</option><option value="8000">8 Sekunden</option><option value="9000">9 Sekunden</option><option value="10000">10 Sekunden</option><option value="11000">11 Sekunden</option><option value="12000">12 Sekunden</option><option value="13000">13 Sekunden</option><option value="14000">14 Sekunden</option><option value="15000">15 Sekunden</option><option value="16000">16 Sekunden</option><option value="17000">17 Sekunden</option><option value="18000">18 Sekunden</option><option value="19000">19 Sekunden</option><option value="20000">20 Sekunden</option><option value="21000">21 Sekunden</option><option value="22000">22 Sekunden</option><option value="23000">23 Sekunden</option><option value="24000">24 Sekunden</option><option value="25000">25 Sekunden</option><option value="26000">26 Sekunden</option><option value="27000">27 Sekunden</option><option value="28000">28 Sekunden</option><option value="29000">29 Sekunden</option><option value="30000">30 Sekunden</option><option value="31000">31 Sekunden</option><option value="32000">32 Sekunden</option><option value="33000">33 Sekunden</option><option value="34000">34 Sekunden</option><option value="35000">35 Sekunden</option><option value="36000">36 Sekunden</option><option value="37000">37 Sekunden</option><option value="38000">38 Sekunden</option><option value="39000">39 Sekunden</option><option value="40000">40 Sekunden</option><option value="41000">41 Sekunden</option><option value="42000">42 Sekunden</option><option value="43000">43 Sekunden</option><option value="44000">44 Sekunden</option><option value="45000">45 Sekunden</option>
       </select></label>
   </div>
+  <label for="dInst" style="font-size:14px;display:flex;gap:8px;align-items:center;cursor:pointer"><input type="checkbox" id="dInst" style="width:20px;height:20px;accent-color:var(--green)"> <span><b>Lösung sofort zeigen</b> – jede Frage erscheint gleich aufgedeckt, der Takt bestimmt, wie lange sie stehen bleibt</span></label>
+  <div class="row" id="ttsRow" style="font-size:14px"><label for="ttsRate">Sprechtempo
+      <select id="ttsRate" style="font:inherit;font-size:14px;padding:4px 6px;border-radius:6px;border:1px solid var(--edge);background:var(--panel);color:var(--ink)"><option value="0.8">langsam</option><option value="0.95">etwas langsam</option><option value="1.05" selected>normal</option><option value="1.2">zügig</option><option value="1.4">schnell</option><option value="1.6">sehr schnell</option></select></label>
+    <label for="ttsWhat">Vorlesen
+      <select id="ttsWhat" style="font:inherit;font-size:14px;padding:4px 6px;border-radius:6px;border:1px solid var(--edge);background:var(--panel);color:var(--ink)"><option value="full">Frage, Lösung, Begründung</option><option value="short">Frage und Lösung</option></select></label></div>
   <div id="dStat">Bereit. Selbst kreuzen geht jederzeit: einfach auf eine Antwort tippen.</div>
 </div>
 
+<div class="barlab">Ansicht</div>
+<div class="bar" id="modeBar"><button type="button" data-m="kreuzen">Kreuzen</button><button type="button" data-m="prime">Priming: nur Schlüsselwörter</button></div>
 <div class="barlab">Fach</div>
 <div class="bar" id="fachBar"></div>
 <div class="barlab">Klausur</div>
@@ -188,7 +230,7 @@ body.run.cfg #dGo{display:none}
 <div class="hud">
   <div class="stat" id="pos">–</div>
   <div class="stat">Richtig <b class="good" id="sOk">0</b> · Falsch <b class="bad" id="sNo">0</b></div>
-  <div class="nav"><button id="hlTog" type="button" title="Schlüsselwörter hervorheben">Markierung</button><button id="bPrev" type="button">◂ Zurück</button><button id="bNextQ" type="button">Vor ▸</button></div>
+  <div class="nav"><button id="ttsTog" type="button" title="Vorlesen an/aus">🔊 Vorlesen</button><button id="hlTog" type="button" title="Schlüsselwörter hervorheben">Markierung</button><button id="bPrev" type="button">◂ Zurück</button><button id="bNextQ" type="button">Vor ▸</button></div>
 </div>
 <div class="dots hidewhenrun" id="dots"></div>
 
@@ -198,6 +240,8 @@ body.run.cfg #dGo{display:none}
 <summary>Bedienung und Speicher</summary>
 <p><b>Selbst kreuzen:</b> Bei Einfachauswahl wertet ein Tipp sofort aus. Bei Mehrfachauswahl (Multiple Select) tippst du alle zutreffenden Optionen an und dann auf „Auswerten“. Grün ist richtig, rot ist falsch angekreuzt, gestrichelt grün heißt übersehen.</p>
 <p><b>Markierungen:</b> Gelb sind die Schlüsselwörter der Frage, rot unterstrichen Verneinungen wie NICHT oder falsch, grau Zahlen mit Einheit. In den Antworten sind Absolutwörter wie immer, nie oder nur rot gepunktet (typische Falle). Nach der Auflösung werden die entscheidenden Wörter der richtigen Antwort grün markiert. Der Knopf „Markierung“ schaltet alles an oder aus.</p>
+<p><b>Priming:</b> Unter „Ansicht“ zeigt „Priming“ jede Frage nur als Schlüsselwörter, darunter nach dem Antippen die Antwort in Schlagworten, wie im Priming-PDF. Rotes NICHT kennzeichnet Negativfragen. „Ganze Frage“ blendet den vollständigen Text ein. Mit der Vorführung und kurzem Takt läuft das als schneller Vorschau-Durchlauf.</p>
+<p><b>Vorlesen:</b> Der Knopf „🔊 Vorlesen“ liest jede Frage mit allen Antwortoptionen vor und nach der Auflösung die richtige Antwort mit Kurzbegründung bzw. Antwortwiki. Mit „Lösung sofort zeigen“ entfallen die falschen Optionen. In der Vorführung wartet der Ablauf, bis fertig vorgelesen ist, mindestens aber den eingestellten Takt. Sprechtempo und Umfang stellst du im Vorführungs-Kasten ein.</p>
 <p><b>Tastatur:</b> Pfeil rechts oder Leertaste geht weiter, Pfeil links zurück, Tasten A bis E kreuzen an, Enter wertet aus.</p>
 <p><b>Speicher:</b> Was du selbst gekreuzt hast, merkt sich dieses Gerät. Die Kästchen über der Frage zeigen dann grün oder rot. Stand und Position bleiben beim Neuladen erhalten.</p>
 <p><button class="rst" id="btnReset" type="button">Stand zurücksetzen</button></p>
@@ -238,6 +282,7 @@ let kSel = (st.k === 'alle' || (typeof st.k === 'number' && KMX[fach] && st.k < 
 let seq = [], idx = 0;
 let picked = new Set(), answered = false;
 let demo = false;
+let mode = st.mode === 'prime' ? 'prime' : 'kreuzen';
 
 const qid = (f,k,q) => f + '|' + KMX[f][k].sem + '|' + q.n;
 const RX = window.KMX_RX || {};
@@ -302,10 +347,11 @@ function hud(){
 
 function render(){
   const s = cur(); if(!s){ $('stage').innerHTML=''; return; }
+  if(mode === 'prime') return renderPrime();
   const q = s.q, multi = isMulti(q);
   picked = new Set(); answered = false;
   st.fach = fach; st.k = kSel; st.pos = st.pos || {}; st.pos[fach+'|'+kSel] = idx; save();
-  const imgs = (q.im||[]).map(src => `<img src="${esc(src)}" alt="Abbildung zu Frage ${q.n}">`).join('');
+  const imgs = (q.im||[]).length ? `<div class="thumbs">` + q.im.map((src,i) => `<button type="button" class="thumb" data-src="${esc(src)}"><img src="${esc(src)}" alt="Abbildung zu Frage ${q.n}"><span><b>Abbildung${q.im.length>1?' '+(i+1):''}</b>Antippen zum Vergrößern</span></button>`).join('') + `</div>` : '';
   $('stage').innerHTML = `
     <div class="card${isNeg(q)?' negq':''}">
       ${isNeg(q) ? `<div class="negbadge">⚠ Negativfrage – gesucht ist, was NICHT stimmt</div>` : ''}
@@ -333,8 +379,57 @@ function render(){
   drawDots(); hud();
   const d = document.querySelector('.dot.cur'); if(d && !demo) d.scrollIntoView({block:'nearest'});
   if(demo) label();
+  ttsKick();
 }
 
+const NUMRX = RX.num ? new RegExp(RX.num,'g') : null;
+const nums = t => NUMRX ? (t.match(NUMRX) || []).slice(0,2) : [];
+const chip = (t, c='') => `<span class="chip${c?' '+c:''}">${esc(t)}</span>`;
+function primeAnswer(q){
+  if(!q.o.length) return `<div class="hid">Frage fehlt im Original.</div>`;
+  if(!q.a) return `<div class="hid">Frage gestrichen.</div>`;
+  return q.o.filter(([l]) => q.a.includes(l)).map(([l,t]) => {
+    const w = (q.ka && q.ka[l]) || [];
+    let inner;
+    if(t.length <= 70 || !w.length) inner = chip(t.length > 90 ? t.slice(0,88)+'…' : t);
+    else inner = nums(t).map(x => chip(x,'num')).join('') + [...new Set(w)].sort((a,b)=>t.indexOf(a)-t.indexOf(b)).map(x => chip(x)).join('');
+    return `<div class="pline"><span class="l">${l}</span><div class="chips">${inner}</div></div>`;
+  }).join('');
+}
+function renderPrime(){
+  const s = cur(), q = s.q;
+  answered = false;
+  st.fach = fach; st.k = kSel; st.pos = st.pos || {}; st.pos[fach+'|'+kSel] = idx; save();
+  const neg = q.o.length && isNeg(q);
+  let parts = (neg ? chip('NICHT','neg') : '') + (q.ks||[]).map(w => chip(w)).join('') + nums(q.s).map(x => chip(x,'num')).join('');
+  if(!(q.ks||[]).length){
+    const stem = q.s.replace(/\(Bitte.*?\)|\(Multiple Select!\)/g,'').trim();
+    parts += chip(stem.length > 120 ? stem.slice(0,118)+'…' : stem, 'plain');
+  }
+  const multi = q.a && q.a.length > 1;
+  $('stage').innerHTML = `
+    <div class="prime${neg?' negq':''}" id="pcard">
+      <div class="tag">${esc(s.f)} · ${esc(KMX[s.f][s.k].sem)}</div>
+      <div class="qn">Frage ${q.n}${multi?'<sup>MEHRFACH</sup>':''}${(q.im||[]).length?'<sup>MIT BILD</sup>':''}</div>
+      <div class="chips">${parts}</div>
+      <div class="parrow">→</div>
+      <div class="pans" id="pans"><div class="hid">Antwort antippen zum Aufdecken</div></div>
+      <div id="pfull"></div>
+    </div>
+    <div class="acts" id="acts"><button type="button" class="sec" id="bShow">Antwort zeigen</button><button type="button" class="sec" id="bFull">Ganze Frage</button></div>`;
+  $('pcard').onclick = e => { if(demo) return; answered ? go(1) : revealPrime(); };
+  $('bShow').onclick = () => revealPrime();
+  $('bFull').onclick = () => { $('pfull').innerHTML = `<div class="pfull">${stemHtml(q)}</div>`; };
+  drawDots(); hud();
+  if(demo) label();
+  ttsKick();
+}
+function revealPrime(){
+  if(answered) return;
+  answered = true;
+  $('pans').innerHTML = primeAnswer(cur().q);
+  finishActs();
+}
 function choose(l){
   const q = cur().q;
   if(!q.o.some(o=>o[0]===l)) return;
@@ -362,6 +457,7 @@ function evaluate(count){
 
 function reveal(fromDemo){
   if(answered) return;
+  if(mode === 'prime') return revealPrime();
   const q = cur().q, ans = new Set(q.a.split(''));
   paint(ans, false);
   const head = q.a ? `<div class="res good">Lösung: ${q.a.split('').join(', ')}</div>`
@@ -399,6 +495,7 @@ function finishActs(){
   $('acts').innerHTML = `<button type="button" class="pri" id="bGo">${last?'Klausur fertig – weiter':'Nächste Frage'}</button>`;
   $('bGo').onclick = () => demo ? step() : go(1);
   if(demo) label();
+  ttsKick();
   if(!demo) $('bGo').focus({preventScroll:true});
 }
 
@@ -467,16 +564,16 @@ function label(){
 function step(){
   clearTimeout(timer);
   if(!answered){ reveal(true); }
-  else { go(1); }
+  else { go(1); if(instant() && !answered) reveal(true); }
   label(); schedule();
 }
 function schedule(){
   clearTimeout(timer);
   const v = $('dSpeed').value;
-  if(!demo || paused || v==='manual') return;
-  let ms = +v;
+  if(!demo || paused || v==='manual' || ttsOn()) return;
+  let ms = v === 'tts' ? 3000 : +v;
   const q = cur() && cur().q;
-  if(answered && q && q.w) ms = Math.round(ms * 1.8);
+  if(!instant() && mode !== 'prime' && answered && q && q.w) ms = Math.round(ms * 1.8);
   timer = setTimeout(step, ms);
 }
 let home = null;
@@ -498,9 +595,10 @@ function startDemo(){
   document.body.classList.add('run'); fabOn();
   $('dGo').textContent = 'Vorführung beenden';
   $('dPause').disabled = false; $('dPause').textContent = 'Pause';
-  render(); label(); scrollTop(); schedule();
+  render(); if(instant()) reveal(true); label(); scrollTop(); schedule();
 }
 function stopDemo(){
+  ttsStop();
   demo = false; clearTimeout(timer);
   document.body.classList.remove('run'); fabOff();
   $('dGo').textContent = 'Vorführung starten';
@@ -511,12 +609,212 @@ function stopDemo(){
 }
 $('dGo').onclick = () => demo ? stopDemo() : startDemo();
 NB().onclick = () => { if(!demo) startDemo(); else step(); };
-$('dPause').onclick = () => { paused = !paused; $('dPause').textContent = paused ? 'Fortsetzen' : 'Pause'; label(); schedule(); };
+$('dPause').onclick = () => { paused = !paused; $('dPause').textContent = paused ? 'Fortsetzen' : 'Pause'; label(); if(paused) ttsStop(); else if(ttsOn()) ttsKick(); schedule(); };
 $('dSpeed').onchange = () => { label(); schedule(); };
+const instant = () => $('dInst').checked;
+$('dInst').checked = !!st.instant;
+$('dInst').onchange = () => { st.instant = instant(); save(); if(demo && instant() && !answered){ reveal(true); label(); schedule(); } };
 $('stage').addEventListener('click', e => { if(demo && !e.target.closest('button')) step(); });
 
 if(st.hl !== false) document.body.classList.add('hl');
 $('hlTog').onclick = () => { st.hl = !document.body.classList.toggle('hl') ? false : true; save(); };
+const lb = document.createElement('div'); lb.id = 'lb'; lb.hidden = true;
+lb.innerHTML = '<div class="lbbar"><span id="lbCap">Abbildung · Bild antippen zum Zoomen</span><button type="button" id="lbX">Schließen ✕</button></div><div class="lbwrap"><img id="lbImg" alt="Abbildung groß"></div>';
+document.body.appendChild(lb);
+function openLb(src){ $('lbImg').src = src; lb.classList.remove('big'); lb.hidden = false; if(demo){ paused = true; clearTimeout(timer); $('dPause').textContent = 'Fortsetzen'; } }
+function closeLb(){ lb.hidden = true; }
+$('lbX').onclick = closeLb;
+$('lbImg').onclick = e => { e.stopPropagation(); lb.classList.toggle('big'); };
+lb.querySelector('.lbwrap').onclick = e => { if(e.target === e.currentTarget) closeLb(); };
+document.addEventListener('keydown', e => { if(e.key === 'Escape' && !lb.hidden) closeLb(); }, true);
+$('stage').addEventListener('click', e => { const t = e.target.closest('.thumb'); if(t){ e.stopPropagation(); openLb(t.dataset.src); } }, true);
+function drawMode(){ document.querySelectorAll('#modeBar button').forEach(b => b.classList.toggle('on', b.dataset.m === mode)); }
+$('modeBar').onclick = e => { const b = e.target.closest('button[data-m]'); if(!b) return; mode = b.dataset.m; st.mode = mode; save(); drawMode(); render(); };
+drawMode();
+/* ============ VORLESEN ============ */
+const SS = window.speechSynthesis;
+let kickT = null, ttsTok = 0, shownAt = Date.now(), spokenStem = null, voice = null;
+const ttsOn = () => document.body.classList.contains('tts');
+function pickVoice(){
+  if(!SS) return;
+  const vs = SS.getVoices().filter(v => /^de/i.test(v.lang));
+  const anna = vs.filter(v => /anna/i.test(v.name));
+  voice = anna.find(v => /premium/i.test(v.name)) || anna.find(v => /erweitert|enhanced/i.test(v.name))
+    || vs.find(v => /premium/i.test(v.name)) || vs.find(v => /erweitert|enhanced/i.test(v.name)) || anna[0] || vs[0] || null;
+  return;
+  voice = vs.find(v => /premium|enhanced|erweitert/i.test(v.name)) || vs.find(v => /Anna|Helena|Petra|Markus|Google Deutsch/i.test(v.name)) || vs[0] || null;
+}
+if(SS){ pickVoice(); SS.onvoiceschanged = pickVoice; }
+function clean(t){
+  return String(t).replace(/\(Bitte[^)]*\)|\(Multiple Select!?\)|\(©[^)]*\)/g,' ')
+    .replace(/‰/g,' Promille').replace(/\s*(→|⇒)\s*/g,', ').replace(/\s*=\s*/g,' gleich ').replace(/[✔✅]/g,' richtig ').replace(/[✘❌]/g,' falsch ')
+    .replace(/\bz\. ?B\./g,'zum Beispiel').replace(/\bbzw\./g,'beziehungsweise').replace(/\bggf\./g,'gegebenenfalls').replace(/\bu\. ?a\./g,'unter anderem')
+    .replace(/\bca\./g,'circa').replace(/\bvs\./g,'gegen').replace(/\s*\/\s*/g,' oder ').replace(/·/g,', ').replace(/\s+/g,' ').trim();
+}
+function chunks(t){
+  const out = []; let cur = '';
+  t.split(/(?<=[.!?;:])\s+/).forEach(p => { if((cur + ' ' + p).length > 220 && cur){ out.push(cur); cur = p; } else cur = cur ? cur + ' ' + p : p; });
+  if(cur) out.push(cur); return out;
+}
+const HL = !!(window.CSS && CSS.highlights && window.Highlight);
+function rangeOf(el, a, b){
+  const r = document.createRange(), w = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+  let pos = 0, n, sOk = false;
+  while((n = w.nextNode())){
+    const len = n.nodeValue.length;
+    if(!sOk && a <= pos + len){ r.setStart(n, Math.max(0, a - pos)); sOk = true; }
+    if(sOk && b <= pos + len){ r.setEnd(n, Math.max(0, b - pos)); return r; }
+    pos += len;
+  }
+  return sOk ? r : null;
+}
+let hlEl = null;
+function hlClear(){
+  if(HL){ CSS.highlights.delete('tts-sent'); CSS.highlights.delete('tts-word'); }
+  if(hlEl){ hlEl.classList.remove('ttsCur'); hlEl = null; }
+}
+function hlSent(it){
+  hlClear();
+  if(!it.el) return;
+  if(HL && it.e > it.s){ const r = rangeOf(it.el, it.s, it.e); if(r) CSS.highlights.set('tts-sent', new Highlight(r)); }
+  else { hlEl = it.el; hlEl.classList.add('ttsCur'); }
+  const b = it.el.getBoundingClientRect();
+  if(b.top < 60 || b.bottom > innerHeight - 110) it.el.scrollIntoView({block:'center', behavior:'smooth'});
+}
+function hlWord(it, charIndex){
+  if(!HL || !it.el) return;
+  const k = (it.say.slice(0, charIndex).match(/\S+/g) || []).length - it.preWords;
+  if(k < 0) { CSS.highlights.delete('tts-word'); return; }
+  const seg = it.el.textContent.slice(it.s, it.e), re = /\S+/g; let m, i = 0;
+  while((m = re.exec(seg))){ if(i++ === k){ const r = rangeOf(it.el, it.s + m.index, it.s + m.index + m[0].length); if(r) CSS.highlights.set('tts-word', new Highlight(r)); return; } }
+}
+function itemsFor(el, pre){
+  const out = [], pw = pre ? (clean(pre).match(/\S+/g) || []).length : 0;
+  if(!el){ if(pre) out.push({el:null, s:0, e:0, say: clean(pre), preWords: 0}); return out; }
+  const txt = el.textContent, re = /[^.!?;]+(?:[.!?;]+|$)\s*/g; let m, first = true;
+  while((m = re.exec(txt))){
+    if(!m[0].trim()) { if(re.lastIndex >= txt.length) break; continue; }
+    const body = clean(m[0]); if(!body) continue;
+    const p = first && pre ? pre + ' ' : '';
+    out.push({el, s: m.index, e: m.index + m[0].trimEnd().length, say: clean(p + m[0]), preWords: first ? pw : 0});
+    first = false;
+    if(re.lastIndex >= txt.length) break;
+  }
+  if(!out.length && pre) out.push({el, s:0, e:txt.length, say: clean(pre + ' ' + txt), preWords: pw});
+  return out;
+}
+function speak(items, done){
+  if(!SS) return;
+  const tok = ++ttsTok;
+  const busy = SS.speaking || SS.pending;
+  if(busy) SS.cancel();
+  items = items.filter(it => it.say);
+  if(!items.length){ done && done(); return; }
+  const total = items.reduce((a,it) => a + it.say.length, 0), t0 = Date.now();
+  let started = false, i = 0;
+  const finish = (err) => {
+    if(tok !== ttsTok) return;
+    hlClear();
+    const ms = Date.now() - t0, expect = total * 45 / (+$('ttsRate').value || 1);
+    if(!started && ms < Math.min(1500, expect * 0.3)) return ttsFail(err || 'keine Ausgabe');
+    done && done();
+  };
+  const next = () => {
+    if(tok !== ttsTok) return;
+    if(i >= items.length) return finish();
+    const it = items[i++];
+    const u = new SpeechSynthesisUtterance(it.say);
+    u.lang = 'de-DE'; if(voice) u.voice = voice; u.rate = +$('ttsRate').value || 1;
+    u.onstart = () => { started = true; if(tok === ttsTok) hlSent(it); };
+    u.onboundary = (e) => { if(tok === ttsTok && (!e.name || e.name === 'word')) hlWord(it, e.charIndex); };
+    u.onend = () => next();
+    u.onerror = (e) => { const c = e && e.error; if(c === 'interrupted' || c === 'canceled') return; if(!started) finish(c); else next(); };
+    SS.speak(u);
+  };
+  busy ? setTimeout(next, 150) : next();
+}
+function ttsFail(why){
+  ttsStop();
+  document.body.classList.remove('tts');
+  if(demo){ paused = true; clearTimeout(timer); $('dPause').textContent = 'Fortsetzen'; }
+  if($('dSpeed').value === 'tts') $('dSpeed').value = 'manual';
+  const msg = `Vorlesen klappt hier gerade nicht (${why}; Stimmen: ${SS ? SS.getVoices().filter(v=>/^de/i.test(v.lang)).length : 0}). Vorführung angehalten.`;
+  $('dStat').textContent = msg;
+  let n = $('ttsMsg');
+  if(!n){ n = document.createElement('div'); n.id = 'ttsMsg'; n.className = 'nowiki'; n.style.cssText = 'color:var(--red);font-weight:600'; $('stage').prepend(n); }
+  n.textContent = msg + ' Lautlos-Schalter prüfen oder in Safari öffnen.';
+}
+function ttsStop(){ ttsTok++; if(SS) SS.cancel(); hlClear(); }
+const qs1 = sel => document.querySelector(sel);
+function segQuestion(s, withOpts){
+  const q = s.q; let pre = `Frage ${q.n}.`;
+  if(q.o.length && isNeg(q)) pre += ' Achtung, Negativfrage.';
+  let out = [];
+  if(mode === 'prime'){
+    out = out.concat(itemsFor(qs1('#pcard .qn'), pre).slice(0,1).map(it => ({...it, say: clean(pre), preWords: 99})));
+    document.querySelectorAll('#pcard > .chips > .chip').forEach(c => out = out.concat(itemsFor(c, '')));
+  } else {
+    out = out.concat(itemsFor(qs1('.card .stem'), pre));
+    if(withOpts) document.querySelectorAll('#opts .opt').forEach(b => out = out.concat(itemsFor(b.querySelector('.t'), b.dataset.l + ':')));
+  }
+  return out;
+}
+function segAnswer(s){
+  const q = s.q; let out = [];
+  if(!q.o.length || !q.a){ return itemsFor(qs1('#after .res') || qs1('#pans .hid'), ''); }
+  if(mode === 'prime'){
+    document.querySelectorAll('#pans .pline').forEach((pl, i) => {
+      const l = pl.querySelector('.l').textContent;
+      pl.querySelectorAll('.chip').forEach((c, j) => out = out.concat(itemsFor(c, j === 0 ? (i === 0 ? (q.a.length > 1 ? 'Richtig sind ' : 'Richtig ist ') : 'Und ') + l + ':' : '')));
+    });
+    return out;
+  }
+  const right = [...document.querySelectorAll('#opts .opt.right')];
+  right.forEach((b, i) => out = out.concat(itemsFor(b.querySelector('.t'), (i === 0 ? (right.length > 1 ? 'Richtig sind ' : 'Richtig ist ') : 'Und ') + b.dataset.l + ':')));
+  if($('ttsWhat').value === 'full'){
+    const kb = qs1('#after .wiki.kb p');
+    if(kb) out = out.concat(itemsFor(kb, 'Begründung:'));
+    else {
+      let n = 0;
+      [...document.querySelectorAll('#after .wiki p')].forEach((p, i) => { if(n > 900) return; n += p.textContent.length; out = out.concat(itemsFor(p, i === 0 ? 'Aus dem Antwortwiki:' : '')); });
+    }
+  }
+  return out;
+}
+function ttsKick(){
+  shownAt = Date.now();
+  if(!ttsOn()) return;
+  clearTimeout(kickT);
+  kickT = setTimeout(() => {
+    const s = cur(); if(!s) return;
+    const key = s.f + '|' + s.k + '|' + s.qi;
+    let items = [];
+    if(!answered){ items = segQuestion(s, mode === 'kreuzen'); spokenStem = key; }
+    else {
+      if(spokenStem !== key){ items = segQuestion(s, false); spokenStem = key; }
+      items = items.concat(segAnswer(s));
+    }
+    speak(items, () => {
+      if(!demo || paused || $('dSpeed').value === 'manual') return;
+      clearTimeout(timer);
+      const v = $('dSpeed').value;
+      const rest = v === 'tts' ? 700 : Math.max(900, (+v) - (Date.now() - shownAt));
+      timer = setTimeout(step, rest);
+    });
+  }, 0);
+}
+$('ttsTog').onclick = () => {
+  if(!SS){ $('dStat').textContent = 'Dieses Gerät bietet keine Sprachausgabe an.'; return; }
+  const on = document.body.classList.toggle('tts'); st.tts = on; save();
+  if(on){
+    pickVoice();
+    if(!demo){ $('dSpeed').value = 'tts'; startDemo(); } else ttsKick();
+  } else { ttsStop(); if($('dSpeed').value === 'tts') $('dSpeed').value = '3000'; schedule(); }
+};
+$('ttsRate').value = st.ttsRate || '1.05';
+$('ttsRate').onchange = () => { st.ttsRate = $('ttsRate').value; save(); };
+$('ttsWhat').value = st.ttsWhat || 'full';
+$('ttsWhat').onchange = () => { st.ttsWhat = $('ttsWhat').value; save(); };
 // Start
 buildSeq();
 idx = (st.pos && st.pos[fach+'|'+kSel]) || 0; if(idx >= seq.length) idx = 0;
