@@ -1,0 +1,54 @@
+<script>
+/* Audio-Vorlesen: ersetzt die Browser-Stimme durch fertige MP3s (für Meta Quest & Co.).
+   Aktiv, wenn der Browser keine Sprachausgabe hat, oder mit ?audio=1 erzwungen (?audio=0 schaltet aus). */
+(function(){
+  const q = location.search;
+  const force = /[?&]audio=1/.test(q), off = /[?&]audio=0/.test(q);
+  const native = window.speechSynthesis;
+  const nativeVoices = () => { try { return native ? native.getVoices().filter(v => /^de/i.test(v.lang)).length : 0; } catch(e){ return 0; } };
+  if(off || (native && !force && (nativeVoices() || !/OculusBrowser|Quest/i.test(navigator.userAgent)))) return;
+  const enc = new TextEncoder();
+  async function key(t){
+    if(crypto && crypto.subtle){
+      const h = await crypto.subtle.digest('SHA-1', enc.encode(t));
+      return [...new Uint8Array(h)].slice(0,6).map(b => b.toString(16).padStart(2,'0')).join('');
+    }
+    return null;
+  }
+  const el = new Audio(); el.preload = 'auto';
+  const warm = new Audio(); warm.preload = 'auto';
+  let queue = [], curU = null, tok = 0;
+  const ss = {
+    speaking: false, pending: false, onvoiceschanged: null, audioMode: true,
+    getVoices(){ return [{name: 'Katja (Audio)', lang: 'de-DE', localService: false, default: true}]; },
+    speak(u){ queue.push(u); ss.pending = queue.length > 0; if(!ss.speaking) next(); },
+    cancel(){ tok++; queue = []; curU = null; ss.speaking = false; ss.pending = false; try { el.pause(); } catch(e){} },
+    pause(){ el.pause(); }, resume(){ el.play().catch(()=>{}); }
+  };
+  async function next(){
+    const my = ++tok;
+    const u = queue.shift(); ss.pending = queue.length > 0;
+    if(!u){ ss.speaking = false; curU = null; return; }
+    curU = u; ss.speaking = true;
+    const k = await key(u.text);
+    if(my !== tok) return;
+    if(queue[0]) key(queue[0].text).then(k2 => { if(k2){ warm.src = 'audio/' + k2 + '.mp3'; } });
+    const skip = () => { if(my !== tok) return; u.onstart && u.onstart({}); u.onend && u.onend({}); next(); };
+    if(!k) return skip();
+    el.onplaying = () => { if(my === tok && !u._s){ u._s = 1; u.onstart && u.onstart({}); } };
+    el.onended = () => { if(my !== tok) return; u.onend && u.onend({}); next(); };
+    el.onerror = () => { console.warn('Audio fehlt:', k, u.text); skip(); };
+    el.src = 'audio/' + k + '.mp3';
+    el.playbackRate = +u.rate || 1;
+    el.play().catch(err => {
+      if(err && err.name === 'NotAllowedError'){
+        tok++; ss.speaking = false; queue = [];
+        u.onerror && u.onerror({error: 'not-allowed'});
+      } else skip();
+    });
+  }
+  window.SpeechSynthesisUtterance = function(t){ this.text = t; this.rate = 1; this.lang = 'de-DE'; };
+  try { Object.defineProperty(window, 'speechSynthesis', {value: ss, configurable: true}); } catch(e){ window.speechSynthesis = ss; }
+  window.__audioTTS = true;
+})();
+</script>
