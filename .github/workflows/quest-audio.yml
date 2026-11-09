@@ -1,0 +1,196 @@
+name: Quest-Audio
+on:
+  workflow_dispatch:
+  push:
+    paths: ['.github/workflows/quest-audio.yml']
+permissions:
+  contents: write
+concurrency: quest-audio
+jobs:
+  audio:
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    steps:
+      - uses: actions/checkout@v4
+      - name: Werkzeuge anlegen
+        run: |
+          mkdir -p tools audio
+          cat > tools/shim.html <<'EOF_SHIM'
+          <script>
+          /* Audio-Vorlesen: ersetzt die Browser-Stimme durch fertige MP3s (für Meta Quest & Co.).
+             Aktiv, wenn der Browser keine Sprachausgabe hat, oder mit ?audio=1 erzwungen (?audio=0 schaltet aus). */
+          (function(){
+            const q = location.search;
+            const force = /[?&]audio=1/.test(q), off = /[?&]audio=0/.test(q);
+            const native = window.speechSynthesis;
+            const nativeVoices = () => { try { return native ? native.getVoices().filter(v => /^de/i.test(v.lang)).length : 0; } catch(e){ return 0; } };
+            if(off || (native && !force && (nativeVoices() || !/OculusBrowser|Quest/i.test(navigator.userAgent)))) return;
+            const enc = new TextEncoder();
+            async function key(t){
+              if(crypto && crypto.subtle){
+                const h = await crypto.subtle.digest('SHA-1', enc.encode(t));
+                return [...new Uint8Array(h)].slice(0,6).map(b => b.toString(16).padStart(2,'0')).join('');
+              }
+              return null;
+            }
+            const el = new Audio(); el.preload = 'auto';
+            const warm = new Audio(); warm.preload = 'auto';
+            let queue = [], curU = null, tok = 0;
+            const ss = {
+              speaking: false, pending: false, onvoiceschanged: null, audioMode: true,
+              getVoices(){ return [{name: 'Katja (Audio)', lang: 'de-DE', localService: false, default: true}]; },
+              speak(u){ queue.push(u); ss.pending = queue.length > 0; if(!ss.speaking) next(); },
+              cancel(){ tok++; queue = []; curU = null; ss.speaking = false; ss.pending = false; try { el.pause(); } catch(e){} },
+              pause(){ el.pause(); }, resume(){ el.play().catch(()=>{}); }
+            };
+            async function next(){
+              const my = ++tok;
+              const u = queue.shift(); ss.pending = queue.length > 0;
+              if(!u){ ss.speaking = false; curU = null; return; }
+              curU = u; ss.speaking = true;
+              const k = await key(u.text);
+              if(my !== tok) return;
+              if(queue[0]) key(queue[0].text).then(k2 => { if(k2){ warm.src = 'audio/' + k2 + '.mp3'; } });
+              const skip = () => { if(my !== tok) return; u.onstart && u.onstart({}); u.onend && u.onend({}); next(); };
+              if(!k) return skip();
+              el.onplaying = () => { if(my === tok && !u._s){ u._s = 1; u.onstart && u.onstart({}); } };
+              el.onended = () => { if(my !== tok) return; u.onend && u.onend({}); next(); };
+              el.onerror = () => { console.warn('Audio fehlt:', k, u.text); skip(); };
+              el.src = 'audio/' + k + '.mp3';
+              el.playbackRate = +u.rate || 1;
+              el.play().catch(err => {
+                if(err && err.name === 'NotAllowedError'){
+                  tok++; ss.speaking = false; queue = [];
+                  u.onerror && u.onerror({error: 'not-allowed'});
+                } else skip();
+              });
+            }
+            window.SpeechSynthesisUtterance = function(t){ this.text = t; this.rate = 1; this.lang = 'de-DE'; };
+            try { Object.defineProperty(window, 'speechSynthesis', {value: ss, configurable: true}); } catch(e){ window.speechSynthesis = ss; }
+            window.__audioTTS = true;
+          })();
+          </script>
+          EOF_SHIM
+          cat > tools/apply.py <<'EOF_APPLY'
+          import os
+          p='altklausuren.html'; s=open(p,encoding='utf8').read()
+          if '__audioTTS' not in s:
+              shim=open('tools/shim.html',encoding='utf8').read()
+              i=s.find('<script>'); s=s[:i]+shim+s[i:]
+              s=s.replace("n.textContent = msg + ' Lautlos-Schalter prüfen oder in Safari öffnen.';","n.textContent = msg + (window.__audioTTS ? ' Einmal auf Vorlesen tippen, damit der Browser Ton erlaubt.' : ' Lautlos-Schalter prüfen oder in Safari öffnen.');")
+              open(p,'w',encoding='utf8').write(s); print('gepatcht')
+          else: print('schon gepatcht')
+          EOF_APPLY
+          cat > tools/collect.py <<'EOF_COLLECT'
+          import os
+          import json, sys, time
+          from playwright.sync_api import sync_playwright
+          PAGE = sys.argv[1]
+          INIT = r"""
+          (()=>{
+           const _st = window.setTimeout; window.setTimeout = (f,d,...a)=>_st(f, Math.min(d||0, 2), ...a);
+           window.__said = [];
+           window.SpeechSynthesisUtterance = function(t){ this.text=t; this.rate=1; };
+           const ss = { speaking:false, pending:false, onvoiceschanged:null,
+             getVoices(){ return [{name:'Fake', lang:'de-DE'}]; },
+             cancel(){}, speak(u){ window.__said.push(u.text); _st(()=>{ u.onstart&&u.onstart(); u.onend&&u.onend(); },0); } };
+           Object.defineProperty(window,'speechSynthesis',{value:ss, configurable:true});
+          })();
+          """
+          with sync_playwright() as p:
+              b = p.chromium.launch(executable_path=os.environ.get('CHROME','/usr/bin/google-chrome'), args=['--no-sandbox'])
+              pg = b.new_page()
+              pg.add_init_script(INIT)
+              pg.goto('file://'+PAGE)
+              faecher = pg.evaluate("Object.keys(window.KMX)")
+              total = pg.evaluate("Object.values(window.KMX).reduce((a,f)=>a+f.reduce((b,k)=>b+k.qs.length,0),0)")
+              allsaid = set()
+              for f in faecher:
+                  st = {"fach": f, "k": "alle", "pos": {}, "ttsWhat": "full", "res": {}}
+                  pg.evaluate("s=>{localStorage.setItem('kmx-v1', s)}", json.dumps(st))
+                  pg.reload()
+                  n = pg.evaluate("KMX=>0", None) if False else pg.evaluate(f"window.KMX[{json.dumps(f)}].reduce((b,k)=>b+k.qs.length,0)")
+                  pg.evaluate("window.__said=[]")
+                  pg.click('#ttsTog')
+                  last, same = -1, 0
+                  while True:
+                      time.sleep(1.0)
+                      cnt = pg.evaluate("window.__said.length")
+                      tag = pg.evaluate("(document.querySelector('.card .tag')||{}).textContent||''")
+                      if not tag.startswith(f) and cnt>5: break
+                      if cnt == last:
+                          same += 1
+                          if same >= 4: break
+                      else: same = 0
+                      last = cnt
+                  said = pg.evaluate("window.__said")
+                  allsaid.update(said)
+                  print(f, n, len(said), len(set(said)), 'now at:', tag[:40], flush=True)
+              b.close()
+          import os; os.makedirs('audio',exist_ok=True); json.dump(sorted(allsaid), open('audio/texts.json','w'), ensure_ascii=False)
+          print('unique', len(allsaid), 'chars', sum(map(len, allsaid)))
+          EOF_COLLECT
+          cat > tools/gen_audio.py <<'EOF_GEN'
+          #!/usr/bin/env python3
+          import asyncio, hashlib, json, os, subprocess, sys, tempfile
+          import edge_tts
+
+          VOICE = os.environ.get('VOICE', 'de-DE-KatjaNeural')
+          OUT = os.path.join(os.path.dirname(__file__), '..', 'audio')
+          PAR = int(os.environ.get('PAR', '8'))
+          LIMIT = int(sys.argv[1]) if len(sys.argv) > 1 else None
+
+          def name(t): return hashlib.sha1(t.encode('utf-8')).hexdigest()[:12] + '.mp3'
+
+          async def one(t, sem, stats):
+              dst = os.path.join(OUT, name(t))
+              if os.path.exists(dst): return
+              async with sem:
+                  for attempt in range(5):
+                      try:
+                          with tempfile.NamedTemporaryFile(suffix='.mp3', delete=False) as f: tmp = f.name
+                          await edge_tts.Communicate(t, VOICE).save(tmp)
+                          p = await asyncio.create_subprocess_exec('ffmpeg', '-loglevel', 'error', '-y', '-i', tmp,
+                                  '-ac', '1', '-ar', '24000', '-b:a', '32k', dst + '.part.mp3')
+                          await p.wait(); os.remove(tmp)
+                          if p.returncode: raise RuntimeError('ffmpeg')
+                          os.replace(dst + '.part.mp3', dst)
+                          stats['ok'] += 1
+                          if stats['ok'] % 250 == 0: print(f"{stats['ok']} fertig", flush=True)
+                          return
+                      except Exception as e:
+                          await asyncio.sleep(2 * (attempt + 1))
+                  stats['err'] += 1; print('FEHLER:', t[:80], flush=True)
+
+          async def main():
+              texts = json.load(open(os.path.join(OUT, 'texts.json'), encoding='utf-8'))
+              todo = [t for t in texts if not os.path.exists(os.path.join(OUT, name(t)))]
+              if LIMIT: todo = todo[:LIMIT]
+              print(f'{len(texts)} Sätze, davon {len(todo)} noch offen', flush=True)
+              sem, stats = asyncio.Semaphore(PAR), {'ok': 0, 'err': 0}
+              await asyncio.gather(*(one(t, sem, stats) for t in todo))
+              print(f"Fertig: {stats['ok']} neu, {stats['err']} Fehler", flush=True)
+
+          asyncio.run(main())
+          EOF_GEN
+      - name: Installieren
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg
+          pip install -q edge-tts playwright
+      - name: Seite anpassen und Saetze sammeln
+        run: |
+          python3 tools/apply.py
+          CHROME=$(which google-chrome || which chromium) python3 tools/collect.py "$PWD/altklausuren.html"
+      - name: Audio erzeugen und hochladen
+        run: |
+          git config user.name "audio-bot"; git config user.email "audio-bot@users.noreply.github.com"
+          git add altklausuren.html tools audio/texts.json
+          git commit -qm "Quest: Vorlesen ueber MP3s" || true
+          git push -q
+          for i in $(seq 1 12); do
+            python3 tools/gen_audio.py 1500
+            git add audio
+            git diff --cached --quiet && break
+            git commit -qm "Vorlese-Audio Etappe $i"
+            git pull -q --rebase && git push -q
+          done
