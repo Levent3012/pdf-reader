@@ -5,6 +5,7 @@ import edge_tts
 VOICE = os.environ.get('VOICE', 'de-DE-KatjaNeural')
 OUT = os.path.join(os.path.dirname(__file__), '..', 'audio')
 PAR = int(os.environ.get('PAR', '8'))
+AF = 'silenceremove=start_periods=1:start_threshold=-45dB:start_silence=0.03,areverse,silenceremove=start_periods=1:start_threshold=-45dB:start_silence=0.1,areverse,silenceremove=stop_periods=-1:stop_threshold=-45dB:stop_duration=0.25:stop_silence=0.18'
 LIMIT = int(sys.argv[1]) if len(sys.argv) > 1 else None
 
 def name(t): return hashlib.sha1(t.encode('utf-8')).hexdigest()[:12] + '.mp3'
@@ -18,7 +19,7 @@ async def one(t, sem, stats):
                 with tempfile.NamedTemporaryFile(suffix='.mp3', delete=False) as f: tmp = f.name
                 await edge_tts.Communicate(t, VOICE).save(tmp)
                 p = await asyncio.create_subprocess_exec('ffmpeg', '-loglevel', 'error', '-y', '-i', tmp,
-                        '-ac', '1', '-ar', '24000', '-b:a', '32k', dst + '.part.mp3')
+                        '-af', AF, '-ac', '1', '-ar', '24000', '-b:a', '32k', dst + '.part.mp3')
                 await p.wait(); os.remove(tmp)
                 if p.returncode: raise RuntimeError('ffmpeg')
                 os.replace(dst + '.part.mp3', dst)
