@@ -1,5 +1,5 @@
 <script>
-/* Audio-Vorlesen: ersetzt die Browser-Stimme durch fertige MP3s (für Meta Quest & Co.).
+/* Audio-Vorlesen v2: ersetzt die Browser-Stimme durch fertige MP3s (für Meta Quest & Co.).
    Aktiv, wenn der Browser keine Sprachausgabe hat, oder mit ?audio=1 erzwungen (?audio=0 schaltet aus). */
 (function(){
   const q = location.search;
@@ -15,7 +15,11 @@
     }
     return null;
   }
-  const el = new Audio(); el.preload = 'auto';
+  const RATE = r => { r = +r || 1; const t = [[0.8,0.95],[0.95,1.15],[1.05,1.3],[1.2,1.65],[1.4,2.0],[1.6,2.4],[1.8,2.8],[2.0,3.3]];
+    for(const [a,b] of t) if(r <= a + 0.001) return b; return 3.3; };
+  const sel = document.getElementById('ttsRate');
+  if(sel){ [['1.8','extrem schnell'],['2.0','Turbo']].forEach(([v,l]) => { const o = document.createElement('option'); o.value = v; o.textContent = l; sel.appendChild(o); }); }
+  const el = new Audio(); el.preload = 'auto'; el.preservesPitch = true;
   const warm = new Audio(); warm.preload = 'auto';
   let queue = [], curU = null, tok = 0;
   const ss = {
@@ -39,7 +43,7 @@
     el.onended = () => { if(my !== tok) return; u.onend && u.onend({}); next(); };
     el.onerror = () => { console.warn('Audio fehlt:', k, u.text); skip(); };
     el.src = 'audio/' + k + '.mp3';
-    el.playbackRate = +u.rate || 1;
+    el.playbackRate = RATE(u.rate);
     el.play().catch(err => {
       if(err && err.name === 'NotAllowedError'){
         tok++; ss.speaking = false; queue = [];
