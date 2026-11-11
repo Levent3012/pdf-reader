@@ -1,0 +1,43 @@
+name: Lebensphasen-Audio
+on:
+  workflow_dispatch:
+  push:
+    paths: ['.github/workflows/lp-audio.yml', 'lebensphasen.html']
+permissions:
+  contents: write
+concurrency: quest-audio
+jobs:
+  audio:
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    steps:
+      - uses: actions/checkout@v4
+      - name: Installieren
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg
+          pip install -q edge-tts playwright
+      - name: Vorlese-Saetze der Lebensphasen-Seite sammeln
+        run: |
+          sed -e "s/'kmx-v1'/'kmx-lp-v1'/" -e "s#audio/texts.json#audio/texts_lp.json#" tools/collect.py > tools/collect_lp.py
+          CHROME=$(which google-chrome || which chromium) python3 tools/collect_lp.py "$PWD/lebensphasen.html"
+          python3 - <<'PY'
+          import json
+          a = json.load(open('audio/texts.json', encoding='utf-8'))
+          b = json.load(open('audio/texts_lp.json', encoding='utf-8'))
+          m = sorted(set(a) | set(b))
+          json.dump(m, open('audio/texts.json', 'w', encoding='utf-8'), ensure_ascii=False)
+          print('alt', len(a), 'neu', len(b), 'zusammen', len(m))
+          PY
+      - name: Audio in Etappen erzeugen und hochladen
+        run: |
+          git config user.name "audio-bot"; git config user.email "audio-bot@users.noreply.github.com"
+          git add audio/texts.json audio/texts_lp.json
+          git commit -qm "Lebensphasen: Vorlese-Saetze" || true
+          git pull -q --rebase && git push -q
+          for i in $(seq 1 14); do
+            python3 tools/gen_audio.py 1500
+            git add audio
+            git diff --cached --quiet && break
+            git commit -qm "Lebensphasen-Audio Etappe $i"
+            git pull -q --rebase && git push -q
+          done
