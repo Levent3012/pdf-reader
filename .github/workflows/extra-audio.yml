@@ -1,0 +1,29 @@
+name: Extra-Audio
+on:
+  workflow_dispatch:
+  push:
+    paths: ['audio/texts_extra.json']
+permissions:
+  contents: write
+concurrency: quest-audio
+jobs:
+  audio:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - name: Installieren
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg
+          pip install -q edge-tts
+      - name: Audio erzeugen und hochladen
+        run: |
+          git config user.name "audio-bot"; git config user.email "audio-bot@users.noreply.github.com"
+          sed "s#'texts.json'#'texts_extra.json'#" tools/gen_audio.py > tools/gen_extra.py
+          for i in 1 2 3; do
+            python3 tools/gen_extra.py 1500
+            git add audio
+            git diff --cached --quiet && break
+            git commit -qm "Extra-Audio Etappe $i"
+            git pull -q --rebase && git push -q
+          done
